@@ -1,0 +1,2 @@
+class UndefinedColumnsError(Exception):
+    pass
