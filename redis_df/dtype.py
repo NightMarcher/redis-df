@@ -1,29 +1,47 @@
 from abc import abstractmethod
 
+from redis import Redis
+
 
 class BaseType:
-    def __init__(self, client, key: str) -> None:
-        self.client = client
-        self.key = key
+    def __init__(self) -> None:
+        pass
 
     @abstractmethod
-    def read(self):
+    def read(self, client: Redis, key: str):
         pass
 
 
 class Hash(BaseType):
-    def read(self, field=""):
-        if field:
-            return self.client.hget(self.key, field)
-        return self.client.hgetall(self.key)
+    def __init__(self, field: str = "") -> None:
+        super().__init__()
+        self.field = field
+
+    def read(self, client: Redis, key: str):
+        if self.field:
+            return client.hget(key, self.field)
+        return client.hgetall(key)
 
 
 class List(BaseType):
-    def read(self):
-        return self.client.lrange(self.key, 0, -1)
+    def read(self, client: Redis, key: str):
+        return client.lrange(key, 0, -1)
 
 
 class Set(BaseType):
-    def read(self):
+    def read(self, client: Redis, key: str):
         # TODO sscan
-        return self.client.smembers(self.key)
+        return client.smembers(key)
+
+
+class Zset(BaseType):
+    def __init__(self, min_: int, max_: int) -> None:
+        super().__init__()
+        self.min = min_
+        self.max = max_
+
+    def read(self, client: Redis, key: str):
+        # TODO use limit and offset
+        return client.zrangebyscore(
+            key, self.min, self.max, withscores=True
+        )
