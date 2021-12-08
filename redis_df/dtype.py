@@ -23,11 +23,6 @@ class Hash(BaseType):
         return client.hgetall(key)
 
 
-class List(BaseType):
-    def read(self, client: Redis, key: str):
-        return client.lrange(key, 0, -1)
-
-
 class Set(BaseType):
     def read(self, client: Redis, key: str):
         # TODO sscan

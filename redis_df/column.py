@@ -1,14 +1,14 @@
 from redis import Redis
 from typing import Optional, Union
 
-from .dtype import Hash, List, Set, Zset
+from .dtype import Hash, Set, Zset
 
 
 class Column:
     def __init__(
         self,
         name: str,
-        dtype: Union[Hash, List, Set, Zset],
+        dtype: Union[Hash, Set, Zset],
         tmpl: str,
         client: Optional[Redis] = None,
     ) -> None:
