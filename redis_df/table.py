@@ -1,4 +1,4 @@
-from pandas import DataFrame
+from pandas import DataFrame, concat
 from redis import Redis
 from typing import FrozenSet, Iterable, List, Optional, Set, Tuple, Union
 
@@ -16,10 +16,8 @@ class Table:
         self.name = name
         self.columns = columns
         self.client = client
-
-        self.column_names = frozenset(col.name for col in columns)
-        self.df = DataFrame(columns=self.column_names)
-        self.update_time = None
+        self.converters = {col.name: col.converter for col in columns}
+        self.column_names = frozenset(self.converters)
 
     def get(
         self,
@@ -27,7 +25,8 @@ class Table:
         fields: Union[List[str], Set[str], Tuple[str]] = None,
     ):
         fields = self._check_fields(fields)
-        self._read_by_columns(uid, fields)
+        raw_df = self._read_by_columns(uid, fields)
+        print(raw_df.to_markdown())
 
     def _check_fields(
         self,
@@ -45,7 +44,8 @@ class Table:
         self,
         uid: Union[int, str],
         fields: FrozenSet[str],
-    ):
+    ) -> DataFrame:
+        objs = []
         for col in self.columns:
             if col.name not in fields:
                 continue
@@ -59,5 +59,5 @@ class Table:
             key = (col.tmpl.format(uid)
                    if uid and col.tmpl.count('{}') else col.tmpl)
 
-            data = col.dtype.read(client, key)
-            print(data)
+            objs.append(col.dtype.read(client, key, col.name))
+        return concat(objs, axis="columns")

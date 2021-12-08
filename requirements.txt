@@ -1,5 +1,6 @@
 Faker==10.0.0
 pandas==1.3.4
 redis==4.0.2
+tabulate==0.8.9
 typing==3.7.4.3
 ujson==4.3.0

@@ -5,14 +5,14 @@ command: python -m examples.quickstart
 from random import randrange, sample
 from faker import Faker
 from redis import Redis
-from ujson import dumps
+from ujson import dumps, loads
 
 from redis_df import Hash, Set, Zset
 from redis_df import Column, Table
 
 
 def init_redis(conn, other_conn, locale_fakes, key_dict):
-    other_conn.hmset(key_dict["student"], {
+    other_conn.hset(key_dict["student"], mapping={
         aid: dumps({
             "name": faker.name(),
             "phone_number": faker.phone_number(),
@@ -22,7 +22,7 @@ def init_redis(conn, other_conn, locale_fakes, key_dict):
     conn.zadd(key_dict["start_ts"], {
         aid: randrange(1638417600, 1638450720) for (aid, _) in enumerate(locale_fakes, 10000)
     })
-    conn.hmset(key_dict["duration"], {
+    conn.hset(key_dict["duration"], mapping={
         aid: randrange(60 * 60 * 3) for (aid, _) in enumerate(locale_fakes, 10000)
     })
     conn.sadd(key_dict["has_coupon"], *sample(range(10000, 9999 + len(locale_fakes)), 5)
@@ -32,10 +32,11 @@ def init_redis(conn, other_conn, locale_fakes, key_dict):
 def demo(conn, other_conn):
     table = Table(
         "live_class_student",
-        Column("student", Hash(), "lv_cls:{}:student", other_conn),
-        Column("start_ts", Zset(0, 1638450720), "lv_cls:{}:start_ts"),
-        Column("duration", Hash(), "lv_cls:{}:duration"),
-        Column("has_coupon", Set(), "lv_cls:{}:has_coupon"),
+        Column("student", Hash(loads), "lv_cls:{}:student", client=other_conn),
+        Column("start_ts", Zset(0, 1638450720),
+               "lv_cls:{}:start_ts", converter=int),
+        Column("duration", Hash(), "lv_cls:{}:duration", converter=int),
+        Column("has_coupon", Set(), "lv_cls:{}:has_coupon", default=False),
         client=conn
     )
     table.get(1024)
