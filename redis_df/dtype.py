@@ -1,8 +1,8 @@
 from abc import abstractmethod
 
 from pandas import DataFrame, Series
-from typing import Callable, Optional, Union
 from redis import Redis
+from typing import Callable, Optional, Union
 
 
 class BaseType:
@@ -45,9 +45,9 @@ class Zset(BaseType):
         self.min = min_
         self.max = max_
 
-    def read(self, client: Redis, key: str, name: str) -> DataFrame:
+    def read(self, client: Redis, key: str, name: str) -> Series:
         # TODO use limit and offset
         raw_tuples = client.zrangebyscore(
             key, self.min, self.max, withscores=True
         )
-        return DataFrame.from_records(raw_tuples, columns=["pk", name]).set_index("pk")
+        return Series({k: v for (k, v) in raw_tuples}, name=name)

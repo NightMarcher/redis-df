@@ -3,20 +3,21 @@ run directory: redis-df
 command: python -m examples.quickstart
 """
 from random import randrange, sample
-from faker import Faker
-from redis import Redis
-from ujson import dumps, loads
 
-from redis_df import Hash, Set, Zset
+from faker import Faker
+from pandas import to_datetime
+from redis import Redis
 from redis_df import Column, Table
+from redis_df import Hash, Set, Zset
+from ujson import dumps, loads
 
 
 def init_redis(conn, other_conn, locale_fakes, key_dict):
     other_conn.hset(key_dict["student"], mapping={
         aid: dumps({
             "name": faker.name(),
+            "country": faker.current_country(),
             "phone_number": faker.phone_number(),
-            "address": faker.address(),
         }) for (aid, faker) in enumerate(locale_fakes, 10000)
     })
     conn.zadd(key_dict["start_ts"], {
@@ -34,7 +35,7 @@ def demo(conn, other_conn):
         "live_class_student",
         Column("student", Hash(loads), "lv_cls:{}:student", client=other_conn),
         Column("start_ts", Zset(0, 1638450720),
-               "lv_cls:{}:start_ts", converter=int),
+               "lv_cls:{}:start_ts", converter=to_datetime, apply_kwargs={"unit": "s"}),
         Column("duration", Hash(), "lv_cls:{}:duration", converter=int),
         Column("has_coupon", Set(), "lv_cls:{}:has_coupon", default=False),
         client=conn
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     conn = Redis(decode_responses=True)
     other_conn = Redis(db=1, decode_responses=True)
     fakes = [Faker(locale) for locale in ("en_US", "ru_RU",
-                                          "zh_CN", "en_GB", "fr_FR", "de_DE", "ja_JP", "id_ID")]
+                                          "zh_CN", "en_GB", "fr_FR", "de_DE", "ja_JP", "en_IN")]
     key_dict = {
         "student": "lv_cls:1024:student",
         "start_ts": "lv_cls:1024:start_ts",
