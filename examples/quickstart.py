@@ -39,7 +39,8 @@ def demo(conn, other_conn):
         Column("has_coupon", Set(), "lv_cls:{}:has_coupon", default=False),
         client=conn
     )
-    table.get(1024)
+    df = table.get(1024)
+    print(df.to_markdown())
 
 
 def clear_redis(conn, other_conn, key_dict):
