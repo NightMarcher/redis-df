@@ -1,6 +1,7 @@
+from typing import FrozenSet, Iterable, List, Optional, Set, Tuple, Union
+
 from pandas import DataFrame, concat
 from redis import Redis
-from typing import FrozenSet, Iterable, List, Optional, Set, Tuple, Union
 
 from .column import Column
 from .exceptions import UndefinedColumnsError
@@ -63,8 +64,7 @@ class Table:
                 # TODO log
                 print(f"No client provided for {col}")
                 continue
-            key = (col.tmpl.format(uid)
-                   if uid and col.tmpl.count('{}') else col.tmpl)
+            key = col.tmpl.format(uid)
 
             data = col.dtype.read(client, key, col.name)
             if data.empty:
@@ -80,7 +80,8 @@ class Table:
         for col in self.to_format_columns:
             if col.converter is not None:
                 df[col.name] = df[col.name].apply(
-                    col.converter, **col.apply_kwargs)
+                    col.converter, **col.apply_kwargs
+                )
             if col.default is not None:
                 defaults[col.name] = col.default
 

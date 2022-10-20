@@ -1,13 +1,11 @@
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
+from typing import Callable, Optional, Union
 
 from pandas import DataFrame, Series
 from redis import Redis
-from typing import Callable, Optional, Union
 
 
-class BaseType:
-    def __init__(self) -> None:
-        pass
+class BaseType(metaclass=ABCMeta):
 
     @abstractmethod
     def read(self, client: Redis, key: str, name: str):
@@ -22,9 +20,11 @@ class Hash(BaseType):
     def read(self, client: Redis, key: str, name: str) -> Union[DataFrame, Series]:
         raw_dict = client.hgetall(key)
         if self.value_parser:
-            parsed_dict = {pk: self.value_parser(
-                value) for pk, value in raw_dict.items()}
-            return DataFrame.from_dict(parsed_dict, orient='index')
+            parsed_dict = {
+                pk: self.value_parser(value)
+                for pk, value in raw_dict.items()
+            }
+            return DataFrame.from_dict(parsed_dict, orient="index")
         return Series(raw_dict, name=name)
 
 

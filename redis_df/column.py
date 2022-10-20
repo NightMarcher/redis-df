@@ -1,5 +1,6 @@
-from redis import Redis
 from typing import Callable, Optional, Union
+
+from redis import Redis
 
 from .dtype import Hash, Set, Zset
 

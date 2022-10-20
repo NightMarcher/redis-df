@@ -1,11 +1,14 @@
 [[source]]
-url = "https://pypi.org/simple"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 verify_ssl = true
 name = "pypi"
 
 [packages]
+redis = "*"
+pandas = "*"
 
 [dev-packages]
+faker = "*"
 
 [requires]
 python_version = "3.7"
